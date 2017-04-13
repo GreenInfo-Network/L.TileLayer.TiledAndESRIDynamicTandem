@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>L.TileLayer.TiledAndESRIDynamicTandem.js</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--
+    this is for Leaflet 0.7, and therefore ESRI-Leaflet 1.x
+    -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.7/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
+
+    <script type="text/javascript" src="https://unpkg.com/esri-leaflet@1.0.4"></script>
+    <script src="L.TileLayer.TiledAndESRIDynamicTandem.js"></script>
+    <script type="text/javascript">
+        var BBOX_N =   49.639;
+        var BBOX_E =  -67.587;
+        var BBOX_S =   25.204;
+        var BBOX_W = -124.672;
+        var MIN_ZOOM   = 4;
+        var MAX_ZOOM   = 18;
+
+        var MAP;
+
+        function init() {
+            MAP = L.map('map', { minZoom:MIN_ZOOM, maxZoom:MAX_ZOOM });
+            MAP.fitBounds([ [BBOX_S, BBOX_W], [BBOX_N, BBOX_E] ]);
+
+            L.control.scale().addTo(MAP);
+
+            var switcher = L.tiledAndESRIDynamicTandem(
+                // two URLs: tile service and dynamic service
+                "https://gis1.usgs.gov/arcgis/rest/services/PADUS1_4/Fine_Agency_Level/MapServer/tile/{z}/{y}/{x}",
+                "https://gis1.usgs.gov/arcgis/rest/services/PADUS1_4/Fine_Agency_Level_ZoomLevel13_20/MapServer",
+                // options are passed to both layers, some are applicable to the tandem itself
+                {
+                    opacity: 0.5,
+                    attribution: '<a target="_blank" href="https://gapanalysis.usgs.gov/padus/">Protected Areas Database of the United States (PAD-US)</a>',
+                    detailZoomLevel: 14  // level 14+ use dynamic, <=13 use tiled
+                }
+            );
+            MAP.addLayer(switcher);
+
+            // for the readout
+            MAP.on('zoomend', function () {
+                document.getElementById('zoomlevel').innerHTML = 'Zoom level now: ' + MAP.getZoom();
+            });
+       }
+    </script>
+
+    <style>
+    body { padding: 0; margin: 0; }
+    html, body, #map { height: 100vh; width: 100vw; }
+    #readout { z-index:1; position: absolute; top:-0; right: 0; background-color:white; border:1px solid black; padding:0 1em 0 1em; }
+    </style>
+</head>
+<body onLoad="init()">
+
+<div id="map"></div>
+
+<div id="readout">
+    <p style="font-weight:bold;">L.TileLayer.TiledAndESRIDynamicTandem.js</p>
+    <p>At level 14 (<i>detailZoomLevel</i>) the layer will switch from tile service to dynamic service.<br/>You will see the change in loading behavior.</p>
+    <p id="zoomlevel">-</p>
+</div>
+
+</body>
+</html>
